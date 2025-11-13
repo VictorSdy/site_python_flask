@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tchat & Visio Flask</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background-color: #eb8500f3;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+        }
+        #sidebar {
+            width: 200px;
+        }
+        #users {
+            list-style: none;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #users li {
+            margin-bottom: 10px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+        }
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #messages {
+            list-style: none;
+            padding: 10px;
+            flex: 1;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 8px;
+            overflow-y: auto;
+        }
+        #messages li {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        #message-box {
+            display: flex;
+            gap: 10px;
+        }
+        #message-box input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        #message-box button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #3e0f94;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #message-box button:hover {
+            background-color: #da1818;
+        }
+        #username-container {
+            margin-bottom: 15px;
+        }
+        #username-container input {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #username-container button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #3e0f94;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Vidéo */
+        #video-chat {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        video {
+            width: 200px;
+            height: 150px;
+            background: black;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Online Tchat & Visio</h1>
+    </header>
+    <main>
+        <div id="sidebar">
+            <div id="username-container">
+                <label>Pseudo : <input id="username" autocomplete="off"></label>
+                <button onclick="setUsername()">Se connecter</button>
+            </div>
+            <h3>En ligne :</h3>
+            <ul id="users"></ul>
+            <button onclick="startCamera()">Activer la caméra</button>
+        </div>
+
+        <div id="chat-container">
+            <ul id="messages"></ul>
+            <div id="message-box">
+                <input id="input" autocomplete="off" placeholder="Tapez votre message">
+                <button onclick="sendMessage()">Envoyer</button>
+            </div>
+            <div id="video-chat">
+                <video id="localVideo" autoplay muted playsinline></video>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        var socket = io();
+        var username = '';
+        var localStream;
+        var peers = {}; // userId -> RTCPeerConnection
+
+        socket.on('connect', () => {
+            console.log('Connecté au serveur');
+        });
+
+        // ---- CHAT ----
+        socket.on('message', function(msg) {
+            var li = document.createElement("li");
+            li.textContent = msg;
+            document.getElementById("messages").appendChild(li);
+            var messages = document.getElementById("messages");
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        socket.on('user_list', function(users) {
+            var usersUl = document.getElementById('users');
+            usersUl.innerHTML = '';
+            users.forEach(u => {
+                var li = document.createElement('li');
+                var dot = document.createElement('span');
+                dot.className = 'online-dot';
+                li.appendChild(dot);
+                li.appendChild(document.createTextNode(u));
+                usersUl.appendChild(li);
+            });
+        });
+
+        function setUsername() {
+            username = document.getElementById('username').value.trim();
+            if(username !== '') {
+                socket.emit('set_username', username);
+            } else {
+                alert('Veuillez saisir un pseudo.');
+            }
+        }
+
+        function sendMessage() {
+            var input = document.getElementById("input");
+            if(username === '') {
+                alert('Merci de choisir un pseudo avant d\'envoyer un message.');
+                return;
+            }
+            if(input.value.trim() !== '') {
+                socket.send({username: username, msg: input.value});
+                input.value = '';
+            }
+        }
+
+        // ---- WEBCAM / VISIO ----
+        async function startCamera() {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = localStream;
+            socket.emit('join_video', username);
+        }
+
+        socket.on('new_user', async (userId) => {
+            const peer = new RTCPeerConnection();
+            peers[userId] = peer;
+
+            localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+
+            peer.ontrack = event => {
+                const remoteVideo = document.createElement('video');
+                remoteVideo.srcObject = event.streams[0];
+                remoteVideo.autoplay = true;
+                remoteVideo.playsInline = true;
+                document.getElementById('video-chat').appendChild(remoteVideo);
+            };
+
+            const offer = await peer.createOffer();
+            await peer.setLocalDescription(offer);
+            socket.emit('offer', { offer, to: userId });
+        });
+
+        socket.on('offer', async (data) => {
+            const peer = new RTCPeerConnection();
+            peers[data.from] = peer;
+
+            localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+
+            peer.ontrack = event => {
+                const remoteVideo = document.createElement('video');
+                remoteVideo.srcObject = event.streams[0];
+                remoteVideo.autoplay = true;
+                remoteVideo.playsInline = true;
+                document.getElementById('video-chat').appendChild(remoteVideo);
+            };
+
+            await peer.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            socket.emit('answer', { answer, to: data.from });
+        });
+
+        socket.on('answer', async (data) => {
+            await peers[data.from].setRemoteDescription(new RTCSessionDescription(data.answer));
+        });
+
+        socket.on('ice-candidate', async (data) => {
+            await peers[data.from].addIceCandidate(new RTCIceCandidate(data.candidate));
+        });
+    </script>
+    <a href="{{ url_for('main.home') }}">Retour à l'accueil</a>
+</body>
+</html>

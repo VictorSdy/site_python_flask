@@ -1,0 +1,14 @@
+# Environnement Python
+venv/
+__pycache__/
+*.pyc
+instance/
+.env
+*.db
+
+# IDE / OS
+.vscode/
+.DS_Store
+
+# Fichiers temporaires
+*.log

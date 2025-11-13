@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .login-container button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .login-container button:hover {
+            background-color: #45a049;
+        }
+
+        .login-container a {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .login-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Connexion</h2>
+        
+        {% if error %}
+            <p style="color: red; margin-bottom: 15px;">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <a href="{{ url_for('main.signup') }}">Créer un compte</a>
+        <!-- <a href="{{ url_for('main.home') }}">Retour à l'accueil</a> -->
+    </div>
+</body>
+</html>
