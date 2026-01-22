@@ -42,12 +42,23 @@ Un site web complet développé avec **Flask**, combinant :
 site_python_flask/
 │
 ├── app/
+│   ├── static/
+│   │     ├── css/
+│   │     │   ├──auth.css     # style de la page d'authentification
+│   │     │   ├──news.css     # style des news
+│   │     │   └──style.css    # style global (à nettoyer)
+│   │     └── js/
+│   │         └── main.js     # chargement des page dans le container
 │   ├── __init__.py           # Initialisation de Flask et SocketIO
 │   ├── routes.py             # Routes principales (home, news, son, etc.)
 │   ├── auth_routes.py        # Authentification (login, signup, logout)
 │   ├── socketio_events.py    # Gestion du tchat et de la visioconférence
 │   │
 │   └── templates/
+│       ├── partials/
+│       ├──    ├── newsbe.html  #sous-page des actus Belgique
+│       ├──    ├── newsfr.html  #sous-page des actus France
+│       ├──    └── son.html     #sous-page de la redirection youtube (todo: detection des liens embed ou redirection vers soundcloud)
 │       ├── login.html
 │       ├── signup.html
 │       ├── home.html

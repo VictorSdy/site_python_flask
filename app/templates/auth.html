@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion / Inscription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>Connexion / Inscription</h2>
+
+    {% if error %}
+        <p class="{{ 'success' if 'succès' in error else 'error' }}">
+            {{ error }}
+        </p>
+    {% endif %}
+
+    <!-- Connexion -->
+    <form method="POST">
+        <input type="hidden" name="action" value="login">
+        <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+        <input type="password" name="password" placeholder="Mot de passe" required>
+        <button class="login-btn" type="submit">Se connecter</button>
+    </form>
+
+    <hr style="margin: 20px 0">
+
+    <!-- Inscription -->
+    <form method="POST">
+        <input type="hidden" name="action" value="signup">
+        <input type="text" name="username" placeholder="Nouveau nom d'utilisateur" required>
+        <input type="password" name="password" placeholder="Mot de passe" required>
+        <button class="signup-btn" type="submit">Créer un compte</button>
+    </form>
+</div>
+
+</body>
+</html>

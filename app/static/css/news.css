@@ -1,0 +1,19 @@
+.news-list {
+    list-style: none;
+    padding: 0;
+}
+
+.news-list li {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.news-list a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #333;
+}
+
+.news-list a:hover {
+    color: #4A90E2;
+}

@@ -1,6 +1,6 @@
 # Crée le venv si nécessaire
 if (!(Test-Path "venv")) {
-    py -m venv venv
+    python -m venv venv
 }
 
 # Active le venv
@@ -10,4 +10,4 @@ if (!(Test-Path "venv")) {
 pip install -r requirements.txt
 
 # Lancer l'application
-py .\run_app.py
+python .\run_app.py
